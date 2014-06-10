@@ -1,19 +1,19 @@
 module EventMachine::Hiredis
   class BaseClient
     class_eval {
-      attr_accessor :redis_client
       attr_reader :sentinel_options
+
       def initialize_with_sentinel(host = 'localhost', port = 6379, password = nil, db = nil, sentinel_options={})
         #@options = sentinel_options.dup
-        if sentinel_options.empty?
-          initialize_without_sentinel(host,port,password,db)
+        puts "SentinelOptions: #{sentinel_options}"
+        initialize_without_sentinel(host,port,password,db)
+        if sentinel_options.nil? || sentinel_options.empty?
           return
         end
+
         @sentinel_options = sentinel_options.dup
-        @master_name = @options[:master_name]
-        @sentinels_options = _parse_sentinel_options(@options[:sentinels])
-        @options.merge!(:host => host,:port => port)
-        #@redis_client = EM::Hiredis::Client.new(@options[:host],@options[:port]).connect
+        @master_name = @sentinel_options[:master_name]
+        @sentinels_options = _parse_sentinel_options(@sentinel_options[:sentinels])
 
         @current_sentinel = EM::Hiredis::Client.new(@sentinels_options[0][:host],@sentinels_options[0][:port]).connect
         @current_sentinel.on(:disconnected) {
@@ -21,8 +21,9 @@ module EventMachine::Hiredis
           try_next_sentinel
         }
 
-        discover_master
+        #discover_master
         watch_sentinel
+        
       end
 
       alias initialize_without_sentinel initialize
@@ -33,7 +34,8 @@ module EventMachine::Hiredis
         pubsub.punsubscribe('*')
         pubsub.psubscribe('*')
         pubsub.on(:pmessage) { |pattern, channel, message|
-          puts message
+          puts "Channel:#{channel}"
+          puts "Message:#{message}"
           next if channel != '+switch-master'
 
           master_name, old_host, old_port, new_host, new_port = message.split(" ")
@@ -41,8 +43,8 @@ module EventMachine::Hiredis
           next if master_name != @master_name
 
           #@options.merge!(host: new_host, port: new_port.to_i)
-
           EM::Hiredis.logger.info("Failover: #{old_host}:#{old_port} => #{new_host}:#{new_port}")
+          close_connection
           @host, @port = new_host,new_port.to_i
           reconnect_connection
         }
@@ -64,7 +66,7 @@ module EventMachine::Hiredis
             if @current_sentinel.connected?
               @switching_sentinels = false
               @sentinel_timer.cancel
-              watch_sentinel
+              #watch_sentinel
             else
               try_next_sentinel
             end
@@ -81,6 +83,7 @@ module EventMachine::Hiredis
 
             # An ip:port pair
             #@options.merge!(:host => master_host, :port => master_port.to_i, :password => @master_password)
+            #close_connection
             @host, @port = master_host,master_port.to_i
             reconnect_connection
             refresh_sentinels_list
@@ -108,12 +111,6 @@ module EventMachine::Hiredis
         response_deferrable.errback { |e|
           try_next_sentinel
         }
-      end
-
-      def pubsub
-        @pubsub ||= begin
-          PubsubClient.new(@host, @port, @password, @db, @sentinel_options).connect
-        end
       end
 
       private
