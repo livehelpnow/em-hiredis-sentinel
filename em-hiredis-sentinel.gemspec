@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Justin Schneck"]
   spec.email         = ["jschneck@mac.com"]
   spec.summary       = %q{Redis Sentinel for em-hiredis}
-  spec.description   = %q{}
-  spec.homepage      = ""
+  spec.description   = %q{Monkey patches em-hiredis with sentinel support for failover}
+  spec.homepage      = "https://github.com/mobileoverlord/em-hiredis-sentinel"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
