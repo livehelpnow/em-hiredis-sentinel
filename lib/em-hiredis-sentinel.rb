@@ -1,5 +1,5 @@
 require 'em-hiredis'
-require 'em-hiredis-sentinel/client'
+require 'em-hiredis-sentinel/base_client'
 
 module EventMachine::Hiredis
   class_eval {
