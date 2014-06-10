@@ -7,12 +7,13 @@ EM.run {
   EM::Hiredis.logger = Logger.new('output.log')
 
 
-  redis_sentinel = EM::Hiredis::Client.new('10.210.35.226',6379,nil,nil,
+  redis_sentinel = EM::Hiredis::Client.new('127.0.0.1',6379,nil,nil,
                                                 :sentinels => [
-                                                    {:host => '10.177.137.115', :port => 26379},
-                                                    {:host => '10.208.25.162', :port => 26379},
-                                                    {:host => '10.178.14.213', :port => 26379}
-                                                ])
+                                                    {:host => '127.0.0.1', :port => 26379},
+                                                    {:host => '127.0.0.1', :port => 26380},
+                                                    {:host => '127.0.0.1', :port => 26381}
+                                                ],
+                                                :master_name => 'mymaster').connect
 
   redis_sentinel.pubsub.subscribe('foo') { |msg|
     puts msg
