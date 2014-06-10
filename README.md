@@ -1,6 +1,6 @@
 # Em::Hiredis::Sentinel
 
-Sentinel Support for em-hiredis. Currently this gem does not fully monkey patch the em-hiredis gem in place.
+Sentinel Support for em-hiredis.
 
 ## Installation
 

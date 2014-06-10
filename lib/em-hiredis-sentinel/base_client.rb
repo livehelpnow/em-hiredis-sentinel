@@ -4,8 +4,7 @@ module EventMachine::Hiredis
       attr_reader :sentinel_options
 
       def initialize_with_sentinel(host = 'localhost', port = 6379, password = nil, db = nil, sentinel_options={})
-        #@options = sentinel_options.dup
-        puts "SentinelOptions: #{sentinel_options}"
+        
         initialize_without_sentinel(host,port,password,db)
         if sentinel_options.nil? || sentinel_options.empty?
           return
@@ -34,15 +33,11 @@ module EventMachine::Hiredis
         pubsub.punsubscribe('*')
         pubsub.psubscribe('*')
         pubsub.on(:pmessage) { |pattern, channel, message|
-          puts "Channel:#{channel}"
-          puts "Message:#{message}"
           next if channel != '+switch-master'
 
           master_name, old_host, old_port, new_host, new_port = message.split(" ")
 
           next if master_name != @master_name
-
-          #@options.merge!(host: new_host, port: new_port.to_i)
           EM::Hiredis.logger.info("Failover: #{old_host}:#{old_port} => #{new_host}:#{new_port}")
           close_connection
           @host, @port = new_host,new_port.to_i
@@ -55,18 +50,16 @@ module EventMachine::Hiredis
         sentinel_options = @sentinels_options.shift
         @sentinels_options.push sentinel_options
 
-        puts "Trying next sentinel: #{sentinel_options[:host]}:#{sentinel_options[:port]}" #if @logger && @logger.debug?
+        EM::Hiredis.logger.info("Trying next sentinel: #{sentinel_options[:host]}:#{sentinel_options[:port]}")
         @current_sentinel.close_connection
         @current_sentinel.configure("redis://#{sentinel_options[:host]}:#{sentinel_options[:port]}")
         @current_sentinel.reconnect_connection
         unless @switching_sentinels
           @switching_sentinels = true
           @sentinel_timer = EM.add_periodic_timer(1) {
-            puts 'Trying New Sentinel Connection'
             if @current_sentinel.connected?
               @switching_sentinels = false
               @sentinel_timer.cancel
-              #watch_sentinel
             else
               try_next_sentinel
             end
@@ -81,9 +74,6 @@ module EventMachine::Hiredis
 
           if master_host && master_port
 
-            # An ip:port pair
-            #@options.merge!(:host => master_host, :port => master_port.to_i, :password => @master_password)
-            #close_connection
             @host, @port = master_host,master_port.to_i
             reconnect_connection
             refresh_sentinels_list
