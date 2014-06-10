@@ -19,16 +19,13 @@ Or install it yourself as:
 ## Usage
 
     require 'em-hiredis-sentinel'
-    redis = EM::Hiredis.connect_sentinel(:master_name => 'mymaster',
-                                         :sentinels => [
-                                             {:host => '127.0.0.1', :port => 26379},
-                                             {:host => '127.0.0.1', :port => 26380},
-                                             {:host => '127.0.0.1', :port => 26381}
-                                         ],
-                                         :host => '127.0.0.1',
-                                         :port => 6379)
-
-connect_sentinel will return an instance of EM::Hiredis which will fail over through messages from the sentinels.
+    redis_sentinel = EM::Hiredis::Client.new('127.0.0.1',6379,nil,nil,
+                                                :sentinels => [
+                                                    {:host => '127.0.0.1', :port => 26379},
+                                                    {:host => '127.0.0.1', :port => 26380},
+                                                    {:host => '127.0.0.1', :port => 26381}
+                                                ],
+                                                :master_name => 'mymaster').connect
 
 
 ## Contributing
@@ -41,7 +38,4 @@ connect_sentinel will return an instance of EM::Hiredis which will fail over thr
 
 ## TODO
 
-1. Add UNix domain sockets
-2. Full password support
-3. Add RSpec tests
-4. Fully monkey patch em-hiredis to use in place. (Like redis-sentinel)
+1. Add RSpec tests
