@@ -1,5 +1,7 @@
 require 'em-hiredis'
 require 'em-hiredis-sentinel/client'
+require 'em-hiredis-sentinel/base_client'
+require 'em-hiredis-sentinel/pubsub_client'
 
 module EventMachine::Hiredis
   class_eval {
