@@ -1,6 +1,5 @@
-# coding: utf-8
-lib = File.expand_path('../lib', __FILE__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+# -*- encoding: utf-8 -*-
+$:.push File.expand_path("../lib", __FILE__)
 require 'em-hiredis-sentinel/version'
 
 Gem::Specification.new do |spec|
