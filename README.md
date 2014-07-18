@@ -19,13 +19,36 @@ Or install it yourself as:
 ## Usage
 
     require 'em-hiredis-sentinel'
-    redis_sentinel = EM::Hiredis::Client.new('127.0.0.1',6379,nil,nil,
-                                                :sentinels => [
-                                                    {:host => '127.0.0.1', :port => 26379},
-                                                    {:host => '127.0.0.1', :port => 26380},
-                                                    {:host => '127.0.0.1', :port => 26381}
-                                                ],
-                                                :master_name => 'mymaster').connect
+    EM.run do
+      redis = EM::Hiredis::Sentinel::RedisClient.new(sentinels:[
+                              'redis://sentinel1.example.net',
+                              'xyz://sentinel2.example.net:26378',
+                              {host:'sentinel3.example.net'},
+                              {host:'sentinel4.example.net', port:26380},
+                              {url:'blah://sentinel5.example.net:26381'},
+                              {url:'ignored://sentinel6.example.net'}
+                            ],
+                            master_name:'mymaster'
+                          )
+      redis.connect
+      counter = 0
+      t = nil
+
+      redis.pubsub.on(:connected) do
+        p "connect callback"
+
+        t = EM.add_periodic_timer(2) do
+          counter += 1
+          redis.pubsub.publish("test", "test-#{counter}")
+        end
+      end
+
+      redis.pubsub.on(:disconnected) do
+        p "disconnect callback"
+        t.cancel
+      end
+
+    end
 
 
 ## Contributing
