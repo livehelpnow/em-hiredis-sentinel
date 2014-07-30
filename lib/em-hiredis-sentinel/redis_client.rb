@@ -7,7 +7,7 @@ module EventMachine::Hiredis::Sentinel
     def initialize(sentinels:[], master_name:'mymaster', db:0, password:nil)
       @master_name = master_name
       @sentinels = _parse_sentinel_options(sentinels)
-      p @sentinels
+      #p @sentinels
       raise "Need at least 1 sentinel" if @sentinels.nil? || @sentinels.count < 1
       @sentinels.uniq! {|h| h.values_at(:host, :port) }
       @sentinels.shuffle! #try to randomize
