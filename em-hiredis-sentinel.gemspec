@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Justin Schneck"]
   spec.email         = ["jschneck@mac.com"]
   spec.summary       = %q{Redis Sentinel for em-hiredis}
-  spec.description   = %q{Monkey patches em-hiredis with sentinel support for failover}
+  spec.description   = %q{em-hiredis with sentinel support for failover}
   spec.homepage      = "https://github.com/mobileoverlord/em-hiredis-sentinel"
   spec.license       = "MIT"
 
@@ -17,6 +17,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_development_dependency "bundler", "~> 1.6"
-  spec.add_development_dependency "rake"
-  spec.add_dependency 'em-hiredis'
+  spec.add_development_dependency "rake", "~> 10.0"
+  spec.add_dependency 'em-hiredis', ">= 0.3.0"
 end
