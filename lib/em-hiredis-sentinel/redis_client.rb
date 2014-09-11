@@ -327,26 +327,22 @@ module EventMachine::Hiredis::Sentinel
     private
 
     def _parse_sentinel_options(options)
-      opts = []
-      options.each do |o|
-        o = o[:url] if o.is_a?(Hash) && o.key?(:url)
+      ret = []
 
+      options.each do |o|
         case o
-          when Hash
-            opts << {
-              host: o[:host],
-              port: o[:port] || 26379
-            }
-          else
-            uri = URI.parse(o)
-            opts << {
-              :host => uri.host,
-              :port => uri.port || 26379
-            }
+        when String
+            #URI requires scheme
+            o = o.prepend('redis://') if !o.include? '://'
+            o = URI.parse(o)
+        when Hash
+          o = o[:url] if o.key?(:url)
         end
+
+        ret << { :host => o.host, :port => o.port || 26379 }
       end
 
-      opts
+      ret
     end
   end
 end
