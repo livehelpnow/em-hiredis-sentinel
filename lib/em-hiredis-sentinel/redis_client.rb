@@ -100,7 +100,8 @@ module EventMachine::Hiredis::Sentinel
       @sentinel_pubsub_client.psubscribe('*') do |channel, message|
         EM::Hiredis.logger.debug("SENTINEL PUBSUB #{channel} #{message}")
 
-        if channel == '+switch-master'
+        case channel
+        when '+switch-master'
           master_name, old_host, old_port, new_host, new_port = message.split(" ")
 
           if master_name == @master_name
@@ -108,7 +109,7 @@ module EventMachine::Hiredis::Sentinel
             update_master_client(new_host, new_port.to_i)
           end
 
-        elsif channel == '-odown' #TODO necessary?
+        when '-odown' #TODO necessary?
           type, master_name, host, port = message.split(" ")
 
           if master_name == @master_name #&& type == 'master' type is always master for odown
@@ -330,13 +331,12 @@ module EventMachine::Hiredis::Sentinel
       ret = []
 
       options.each do |o|
-        case o
-        when String
+        o = o[:url] if o.is_a?(Hash) && o.key?(:url)
+
+        if o.is_a?(String)
             #URI requires scheme
             o = o.prepend('redis://') if !o.include? '://'
             o = URI.parse(o)
-        when Hash
-          o = o[:url] if o.key?(:url)
         end
 
         ret << { :host => o.host, :port => o.port || 26379 }
